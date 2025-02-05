@@ -1,0 +1,92 @@
+services:
+  mongo:
+    image: mongo
+    container_name: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: $MONGO_USER
+      MONGO_INITDB_ROOT_PASSWORD: $MONGO_PASSWORD
+    ports:
+      - $MONGO_LOCAL_PORT:$MONGO_DOCKER_PORT
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - $REDIS_LOCAL_PORT:$REDIS_DOCKER_PORT
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: faq-server
+    working_dir: /faq
+    environment:
+      - NODE_ENV=production
+      - PORT=$PORT
+      - MONGO_URL=$MONGO_URL
+      - REDIS_URL=$REDIS_URL
+    ports:
+      - $NODE_LOCAL_PORT:$NODE_DOCKER_PORT
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: faq-client
+    environment:
+      - REACT_APP_API_URL=$REACT_APP_API_URL
+    ports:
+      - $REACT_APP_LOCAL_PORT:$REACT_APP_DOCKER_PORT
+    depends_on:
+      - server
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: faq-nginx
+    ports:
+      - $NGINX_LOCAL_PORT:$NGINX_DOCKER_PORT
+    networks:
+      - app-network
+    depends_on:
+      - server
+      - client
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+  redis_data:
+
+networks:
+  app-network:
+    driver: bridge

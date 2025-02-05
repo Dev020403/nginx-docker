@@ -1,0 +1,6 @@
+.env
+node_modules
+dist
+dist-ssr
+serverLogs
+mongo_data
