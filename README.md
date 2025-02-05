@@ -27,13 +27,6 @@ This project is a RESTful API for managing Frequently Asked Questions (FAQs) wit
    ```bash
    npm install
    ```
-3. **Set up environment variables**:
-   Create a `.env` file in the root directory and add the following:
-   ```env
-   PORT=8000
-   MONGO_URI=mongodb+srv://devkapadia123:C6oy6ytt0hFCNLWV@cluster0.oqv8p.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
-   REDIS=rediss://red-cuff9f2j1k6c73fqo3a0:7pmTl5eMcMWvKMaulUG4TVw4XOCfiaHX@singapore-redis.render.com:6379
-   ```
 4. **Run the application**:
    ```bash
    npm start
